@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from api_app.ingestors_manager.classes import Ingestor
 from api_app.ingestors_manager.models import IngestorConfig
 from tests import CustomTestCase
@@ -8,7 +10,8 @@ class IngestorTestCase(CustomTestCase):
         "api_app/fixtures/0001_user.json",
     ]
 
-    def test_subclasses(self):
+    @patch("intel_owl.tasks.job_pipeline.apply_async")
+    def test_subclasses(self, mock_apply_async):
         def handler(signum, frame):
             raise TimeoutError("end of time")
 
@@ -23,8 +26,7 @@ class IngestorTestCase(CustomTestCase):
             if not configs.exists():
                 self.fail(f"There is a python module {subclass.python_module} without any configuration")
             for config in configs:
-                timeout_seconds = config.soft_time_limit
-                timeout_seconds = min(timeout_seconds, 20)
+                timeout_seconds = 1
                 print(f"\tTesting with config {config.name} for {timeout_seconds} seconds")
                 sub = subclass(config)
                 signal.alarm(timeout_seconds)

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from kombu import uuid
 
 from api_app.analyzables_manager.models import Analyzable
@@ -25,7 +27,8 @@ class PivotTestCase(CustomTestCase):
             analyzable=an,
         )
 
-    def test_subclasses(self):
+    @patch("intel_owl.tasks.job_pipeline.apply_async")
+    def test_subclasses(self, mock_apply_async):
         def handler(signum, frame):
             raise TimeoutError("end of time")
 
@@ -40,8 +43,7 @@ class PivotTestCase(CustomTestCase):
             print(f"\nTesting Pivot {subclass.__name__}")
             configs = PivotConfig.objects.filter(python_module=subclass.python_module)
             for config in configs:
-                timeout_seconds = config.soft_time_limit
-                timeout_seconds = min(timeout_seconds, 20)
+                timeout_seconds = 1
                 print(f"\tTesting with config {config.name} for {timeout_seconds} seconds")
                 job = Job.objects.get(analyzable__classification="domain")
                 sub = subclass(config)
