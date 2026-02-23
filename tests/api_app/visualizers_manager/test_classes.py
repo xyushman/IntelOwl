@@ -1,6 +1,7 @@
 # This file is a part of IntelOwl https://github.com/intelowlproject/IntelOwl
 # See the file 'LICENSE' for copying permission.
 
+from unittest.mock import patch
 
 from kombu import uuid
 
@@ -499,7 +500,8 @@ class VisualizerTestCase(CustomTestCase):
         vc.delete()
         an.delete()
 
-    def test_subclasses(self):
+    @patch("intel_owl.tasks.job_pipeline.apply_async")
+    def test_subclasses(self, mock_apply_async):
         def handler(signum, frame):
             raise TimeoutError("end of time")
 
@@ -525,8 +527,7 @@ class VisualizerTestCase(CustomTestCase):
                 self.fail(f"There is a python module {subclass.python_module} without any configuration")
             for config in configs:
                 job.visualizers_to_execute.set([config])
-                timeout_seconds = config.soft_time_limit
-                timeout_seconds = min(timeout_seconds, 20)
+                timeout_seconds = 1
                 print(f"\tTesting with config {config.name} for {timeout_seconds} seconds")
                 sub = subclass(config)
                 signal.alarm(timeout_seconds)
